@@ -24,7 +24,7 @@ import {
 const mockEvaluationData = {
   studentInfo: {
     seatNo: 'A-2024-001542',
-    candidateName: 'Kuldip Shingala',
+    candidateName: 'Rajesh Kumar Sharma',
     exam: 'UPSC',
     subExam: 'Mains',
     paper: 'GS1',
@@ -142,6 +142,7 @@ export default function ReviewPage() {
   }
 
   const handleProceedToResult = () => {
+    // In real app, save final marks to backend first
     router.push('/result')
   }
 
@@ -247,8 +248,8 @@ export default function ReviewPage() {
                   {currentPage === 1 ? (
                     /* Cover Page */
                     <div className="text-center py-12 space-y-6">
-                      <div className="w-20 h-20 bg-helio-100 rounded-2xl flex items-center justify-center mx-auto">
-                        <span className="text-3xl font-display font-bold text-helio-700">H</span>
+                      <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mx-auto shadow-soft overflow-hidden">
+                        <img src="/logo.png" alt="Heliomark AI" className="w-16 h-16 object-contain" />
                       </div>
                       <div>
                         <h2 className="text-xl font-display font-bold text-helio-900 mb-1">

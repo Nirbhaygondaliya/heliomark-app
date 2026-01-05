@@ -51,8 +51,8 @@ export default function LoginPage() {
         <div className="relative z-10 flex flex-col justify-center px-16">
           {/* Logo */}
           <div className="mb-8">
-            <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20">
-              <span className="text-4xl font-display font-bold text-white">H</span>
+            <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="Heliomark AI" className="w-16 h-16 object-contain" />
             </div>
           </div>
           
@@ -82,8 +82,8 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8 text-center">
-            <div className="w-16 h-16 bg-helio-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl font-display font-bold text-white">H</span>
+            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-soft overflow-hidden">
+              <img src="/logo.png" alt="Heliomark AI" className="w-12 h-12 object-contain" />
             </div>
             <h1 className="text-2xl font-display font-bold text-helio-900">Heliomark AI</h1>
           </div>

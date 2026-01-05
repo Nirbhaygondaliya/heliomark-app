@@ -161,8 +161,8 @@ export default function EvaluatePage() {
         <div className="h-full max-w-7xl mx-auto px-4 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-helio-700 rounded-xl flex items-center justify-center">
-              <span className="text-xl font-display font-bold text-white">H</span>
+            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm overflow-hidden">
+              <img src="/logo.png" alt="Heliomark AI" className="w-8 h-8 object-contain" />
             </div>
             <span className="text-lg font-display font-semibold text-helio-900 hidden sm:block">
               Heliomark AI
