@@ -24,7 +24,7 @@ import {
 const mockEvaluationData = {
   studentInfo: {
     seatNo: 'A-2024-001542',
-    candidateName: 'Rajesh Kumar Sharma',
+    candidateName: 'Kuldip Shingala',
     exam: 'UPSC',
     subExam: 'Mains',
     paper: 'GS1',
