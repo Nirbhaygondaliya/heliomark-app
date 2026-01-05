@@ -1,0 +1,11 @@
+IMPORTANT: Add your Heliomark logo here!
+
+Rename your logo file to "logo.png" and place it in this folder (public/).
+
+The logo you shared (the "H" made of stacked blocks in blue/cream colors) 
+should be saved as:
+- public/logo.png
+
+You can also add other image assets here like:
+- favicon.ico
+- og-image.png (for social sharing)
