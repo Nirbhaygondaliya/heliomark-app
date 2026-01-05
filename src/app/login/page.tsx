@@ -2,40 +2,107 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail, Phone, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react'
+import { Mail, Lock, ArrowRight, Eye, EyeOff, AlertCircle } from 'lucide-react'
+import { signIn, signUp, confirmSignUp, resendConfirmationCode } from '@/lib/auth'
+
+type AuthMode = 'signin' | 'signup' | 'confirm'
 
 export default function LoginPage() {
   const router = useRouter()
-  const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email')
-  const [authMethod, setAuthMethod] = useState<'password' | 'otp'>('password')
+  const [authMode, setAuthMode] = useState<AuthMode>('signin')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [otpSent, setOtpSent] = useState(false)
+  const [error, setError] = useState('')
   
   const [formData, setFormData] = useState({
     email: '',
-    phone: '',
     password: '',
-    otp: '',
+    confirmPassword: '',
+    name: '',
+    verificationCode: '',
   })
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Navigate to evaluation page
-    router.push('/evaluate')
+    try {
+      const result = await signIn(formData.email, formData.password)
+      
+      if (result.success) {
+        router.push('/evaluate')
+      } else if (result.challenge === 'NEW_PASSWORD_REQUIRED') {
+        setError('Please reset your password')
+      }
+    } catch (err: any) {
+      if (err.message.includes('User is not confirmed')) {
+        setAuthMode('confirm')
+        // Resend confirmation code
+        await resendConfirmationCode(formData.email)
+        setError('Please verify your email. A new code has been sent.')
+      } else {
+        setError(err.message || 'Sign in failed')
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleSendOtp = async () => {
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault()
     setIsLoading(true)
-    // Simulate OTP send
-    await new Promise(resolve => setTimeout(resolve, 800))
-    setOtpSent(true)
-    setIsLoading(false)
+    setError('')
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match')
+      setIsLoading(false)
+      return
+    }
+
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters')
+      setIsLoading(false)
+      return
+    }
+    
+    try {
+      await signUp(formData.email, formData.password, formData.name)
+      setAuthMode('confirm')
+      setError('')
+    } catch (err: any) {
+      setError(err.message || 'Sign up failed')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleConfirmSignUp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
+    
+    try {
+      await confirmSignUp(formData.email, formData.verificationCode)
+      // Auto sign in after confirmation
+      const result = await signIn(formData.email, formData.password)
+      if (result.success) {
+        router.push('/evaluate')
+      }
+    } catch (err: any) {
+      setError(err.message || 'Verification failed')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleResendCode = async () => {
+    try {
+      await resendConfirmationCode(formData.email)
+      setError('Verification code sent!')
+    } catch (err: any) {
+      setError(err.message || 'Failed to resend code')
+    }
   }
 
   return (
@@ -77,7 +144,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Panel - Login Form */}
+      {/* Right Panel - Auth Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
@@ -89,195 +156,254 @@ export default function LoginPage() {
           </div>
 
           <div className="card p-8">
-            <h2 className="text-2xl font-display font-semibold text-helio-900 mb-2">
-              Welcome back
-            </h2>
-            <p className="text-helio-500 mb-8">
-              Sign in to continue evaluating
-            </p>
+            {/* Sign In Form */}
+            {authMode === 'signin' && (
+              <>
+                <h2 className="text-2xl font-display font-semibold text-helio-900 mb-2">
+                  Welcome back
+                </h2>
+                <p className="text-helio-500 mb-8">
+                  Sign in to continue evaluating
+                </p>
 
-            {/* Login Method Toggle */}
-            <div className="flex gap-2 p-1 bg-helio-50 rounded-xl mb-6">
-              <button
-                type="button"
-                onClick={() => setLoginMethod('email')}
-                className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-                  loginMethod === 'email'
-                    ? 'bg-white text-helio-900 shadow-sm'
-                    : 'text-helio-500 hover:text-helio-700'
-                }`}
-              >
-                <Mail size={16} />
-                Email
-              </button>
-              <button
-                type="button"
-                onClick={() => setLoginMethod('phone')}
-                className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-                  loginMethod === 'phone'
-                    ? 'bg-white text-helio-900 shadow-sm'
-                    : 'text-helio-500 hover:text-helio-700'
-                }`}
-              >
-                <Phone size={16} />
-                Phone
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Email or Phone Input */}
-              {loginMethod === 'email' ? (
-                <div>
-                  <label className="block text-sm font-medium text-helio-700 mb-2">
-                    Email address
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="teacher@school.edu"
-                    className="input-field"
-                    required
-                  />
-                </div>
-              ) : (
-                <div>
-                  <label className="block text-sm font-medium text-helio-700 mb-2">
-                    Phone number
-                  </label>
-                  <div className="flex gap-2">
-                    <select className="dropdown-select w-24">
-                      <option>+91</option>
-                      <option>+1</option>
-                      <option>+44</option>
-                    </select>
-                    <input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="98765 43210"
-                      className="input-field flex-1"
-                      required
-                    />
+                {error && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+                    <AlertCircle size={20} className="text-red-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-red-700">{error}</p>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Auth Method Toggle */}
-              <div className="flex gap-2 p-1 bg-helio-50 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => { setAuthMethod('password'); setOtpSent(false); }}
-                  className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    authMethod === 'password'
-                      ? 'bg-white text-helio-900 shadow-sm'
-                      : 'text-helio-500 hover:text-helio-700'
-                  }`}
-                >
-                  Password
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAuthMethod('otp')}
-                  className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    authMethod === 'otp'
-                      ? 'bg-white text-helio-900 shadow-sm'
-                      : 'text-helio-500 hover:text-helio-700'
-                  }`}
-                >
-                  OTP
-                </button>
-              </div>
-
-              {/* Password or OTP Input */}
-              {authMethod === 'password' ? (
-                <div>
-                  <label className="block text-sm font-medium text-helio-700 mb-2">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      placeholder="••••••••"
-                      className="input-field pr-12"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-helio-400 hover:text-helio-600"
-                    >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
-                  </div>
-                  <div className="text-right mt-2">
-                    <a href="#" className="text-sm text-helio-600 hover:text-helio-800">
-                      Forgot password?
-                    </a>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <label className="block text-sm font-medium text-helio-700 mb-2">
-                    One-Time Password
-                  </label>
-                  {!otpSent ? (
-                    <button
-                      type="button"
-                      onClick={handleSendOtp}
-                      disabled={isLoading}
-                      className="btn-secondary w-full"
-                    >
-                      {isLoading ? 'Sending...' : 'Send OTP'}
-                    </button>
-                  ) : (
-                    <div className="space-y-3">
+                <form onSubmit={handleSignIn} className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-helio-700 mb-2">
+                      Email address
+                    </label>
+                    <div className="relative">
+                      <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-helio-400" />
                       <input
-                        type="text"
-                        value={formData.otp}
-                        onChange={(e) => setFormData({ ...formData, otp: e.target.value })}
-                        placeholder="Enter 6-digit OTP"
-                        className="input-field text-center text-lg tracking-widest"
-                        maxLength={6}
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="teacher@school.edu"
+                        className="input-field pl-12"
                         required
                       />
-                      <p className="text-sm text-helio-500 text-center">
-                        OTP sent to {loginMethod === 'email' ? formData.email : formData.phone}
-                        <button type="button" onClick={handleSendOtp} className="text-helio-700 ml-2 hover:underline">
-                          Resend
-                        </button>
-                      </p>
                     </div>
-                  )}
-                </div>
-              )}
+                  </div>
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isLoading || (authMethod === 'otp' && !otpSent)}
-                className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                ) : (
-                  <>
-                    Sign in
-                    <ArrowRight size={18} />
-                  </>
+                  <div>
+                    <label className="block text-sm font-medium text-helio-700 mb-2">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-helio-400" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        placeholder="••••••••"
+                        className="input-field pl-12 pr-12"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-helio-400 hover:text-helio-600"
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isLoading ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    ) : (
+                      <>
+                        Sign in
+                        <ArrowRight size={18} />
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                <p className="text-center text-helio-500 mt-6">
+                  Don't have an account?{' '}
+                  <button 
+                    onClick={() => { setAuthMode('signup'); setError(''); }}
+                    className="text-helio-700 font-medium hover:underline"
+                  >
+                    Sign up
+                  </button>
+                </p>
+              </>
+            )}
+
+            {/* Sign Up Form */}
+            {authMode === 'signup' && (
+              <>
+                <h2 className="text-2xl font-display font-semibold text-helio-900 mb-2">
+                  Create account
+                </h2>
+                <p className="text-helio-500 mb-8">
+                  Start evaluating answer sheets with AI
+                </p>
+
+                {error && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+                    <AlertCircle size={20} className="text-red-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
                 )}
-              </button>
-            </form>
 
-            {/* Sign up link */}
-            <p className="text-center text-helio-500 mt-6">
-              Don't have an account?{' '}
-              <a href="#" className="text-helio-700 font-medium hover:underline">
-                Sign up
-              </a>
-            </p>
+                <form onSubmit={handleSignUp} className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-helio-700 mb-2">
+                      Full name
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Prof. Amit Mehta"
+                      className="input-field"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-helio-700 mb-2">
+                      Email address
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="teacher@school.edu"
+                      className="input-field"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-helio-700 mb-2">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      placeholder="Min 8 characters"
+                      className="input-field"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-helio-700 mb-2">
+                      Confirm password
+                    </label>
+                    <input
+                      type="password"
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                      placeholder="••••••••"
+                      className="input-field"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isLoading ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    ) : (
+                      <>
+                        Create account
+                        <ArrowRight size={18} />
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                <p className="text-center text-helio-500 mt-6">
+                  Already have an account?{' '}
+                  <button 
+                    onClick={() => { setAuthMode('signin'); setError(''); }}
+                    className="text-helio-700 font-medium hover:underline"
+                  >
+                    Sign in
+                  </button>
+                </p>
+              </>
+            )}
+
+            {/* Verification Form */}
+            {authMode === 'confirm' && (
+              <>
+                <h2 className="text-2xl font-display font-semibold text-helio-900 mb-2">
+                  Verify your email
+                </h2>
+                <p className="text-helio-500 mb-8">
+                  Enter the code sent to {formData.email}
+                </p>
+
+                {error && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+                    <AlertCircle size={20} className="text-red-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                )}
+
+                <form onSubmit={handleConfirmSignUp} className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-helio-700 mb-2">
+                      Verification code
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.verificationCode}
+                      onChange={(e) => setFormData({ ...formData, verificationCode: e.target.value })}
+                      placeholder="123456"
+                      className="input-field text-center text-2xl tracking-widest"
+                      maxLength={6}
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isLoading ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    ) : (
+                      <>
+                        Verify & Sign in
+                        <ArrowRight size={18} />
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                <p className="text-center text-helio-500 mt-6">
+                  Didn't receive code?{' '}
+                  <button 
+                    onClick={handleResendCode}
+                    className="text-helio-700 font-medium hover:underline"
+                  >
+                    Resend
+                  </button>
+                </p>
+              </>
+            )}
           </div>
 
           {/* Footer */}
