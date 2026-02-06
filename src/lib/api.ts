@@ -1,31 +1,18 @@
 // API library for Heliomark backend
-import { awsConfig } from './aws-config'
+// Updated to connect to EC2 evaluation API
 import { getIdToken, refreshTokens, isAuthenticated } from './auth'
 
-const API_BASE = awsConfig.api.baseUrl
+// EC2 backend URL for evaluation pipeline
+const EC2_API = process.env.NEXT_PUBLIC_EC2_API_URL || 'http://13.233.111.136:8000'
 
-// Helper for API requests with authentication
-async function apiRequest(
-  endpoint: string, 
+// Helper for EC2 API requests
+async function ec2Request(
+  endpoint: string,
   options: RequestInit = {}
 ): Promise<any> {
-  // Check authentication
-  if (!isAuthenticated()) {
-    // Try to refresh tokens
-    try {
-      await refreshTokens()
-    } catch {
-      throw new Error('Please sign in again')
-    }
-  }
-
-  const token = getIdToken()
-  
-  const response = await fetch(`${API_BASE}${endpoint}`, {
+  const response = await fetch(`${EC2_API}${endpoint}`, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
       ...options.headers,
     },
   })
@@ -33,7 +20,7 @@ async function apiRequest(
   const data = await response.json()
 
   if (!response.ok) {
-    throw new Error(data.error || 'API request failed')
+    throw new Error(data.detail || data.error || 'API request failed')
   }
 
   return data
@@ -41,80 +28,99 @@ async function apiRequest(
 
 // Health check
 export async function healthCheck() {
-  const response = await fetch(`${API_BASE}/health`)
-  return response.json()
+  return await ec2Request('/')
 }
 
-// Get presigned URL for file upload
-export async function getUploadUrl(fileName: string, fileType: string) {
-  return await apiRequest('/upload-url', {
-    method: 'POST',
-    body: JSON.stringify({ fileName, fileType }),
-  })
-}
+// ===========================================================================
+// EVALUATION API (talks to EC2)
+// ===========================================================================
 
-// Upload file to S3 using presigned URL
-export async function uploadFileToS3(
-  uploadUrl: string, 
+// Submit PDF for evaluation — returns job_id
+export async function submitEvaluation(
   file: File,
-  onProgress?: (progress: number) => void
-): Promise<boolean> {
+  subjectId: string = 'upsc-mains-gs2',
+  onUploadProgress?: (progress: number) => void
+): Promise<{ job_id: string; status: string; estimated_minutes: number }> {
   return new Promise((resolve, reject) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('subject_id', subjectId)
+
     const xhr = new XMLHttpRequest()
-    
+
     xhr.upload.addEventListener('progress', (event) => {
-      if (event.lengthComputable && onProgress) {
+      if (event.lengthComputable && onUploadProgress) {
         const progress = Math.round((event.loaded / event.total) * 100)
-        onProgress(progress)
+        onUploadProgress(progress)
       }
     })
 
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
-        resolve(true)
+        resolve(JSON.parse(xhr.responseText))
       } else {
-        reject(new Error('Upload failed'))
+        try {
+          const err = JSON.parse(xhr.responseText)
+          reject(new Error(err.detail || 'Upload failed'))
+        } catch {
+          reject(new Error('Upload failed'))
+        }
       }
     })
 
     xhr.addEventListener('error', () => {
-      reject(new Error('Upload failed'))
+      reject(new Error('Network error — could not reach server'))
     })
 
-    xhr.open('PUT', uploadUrl)
-    xhr.setRequestHeader('Content-Type', file.type)
-    xhr.send(file)
+    xhr.open('POST', `${EC2_API}/api/v1/evaluate`)
+    xhr.send(formData)
   })
 }
 
-// Create new evaluation
-export async function createEvaluation(params: {
-  fileKey: string
-  fileName: string
-  evaluationType?: string
-  prompt?: string
-}) {
-  return await apiRequest('/evaluations', {
+// Check job status
+export async function getJobStatus(jobId: string) {
+  return await ec2Request(`/api/v1/jobs/${jobId}`)
+}
+
+// Get evaluation result
+export async function getResult(jobId: string) {
+  return await ec2Request(`/api/v1/results/${jobId}`)
+}
+
+// Get PDF download URL
+export function getResultPdfUrl(jobId: string): string {
+  return `${EC2_API}/api/v1/results/${jobId}/pdf`
+}
+
+// ===========================================================================
+// CONFIG API (for settings pages)
+// ===========================================================================
+
+// Get configs for a subject
+export async function getConfigs(subjectId: string = 'upsc-mains-gs2') {
+  return await ec2Request(`/api/v1/configs/${subjectId}`)
+}
+
+// Update a config file
+export async function updateConfig(
+  subjectId: string,
+  fileName: string,
+  content: object
+) {
+  const formData = new FormData()
+  formData.append('file_name', fileName)
+  formData.append('content', JSON.stringify(content))
+
+  return await ec2Request(`/api/v1/configs/${subjectId}/update`, {
     method: 'POST',
-    body: JSON.stringify(params),
+    body: formData,
   })
 }
 
-// Get all evaluations for current user
-export async function getEvaluations() {
-  return await apiRequest('/evaluations', {
-    method: 'GET',
-  })
-}
+// ===========================================================================
+// LEGACY — keep for backward compat with existing pages
+// ===========================================================================
 
-// Get single evaluation by ID
-export async function getEvaluation(evaluationId: string) {
-  return await apiRequest(`/evaluations/${evaluationId}`, {
-    method: 'GET',
-  })
-}
-
-// Complete flow: Upload file and create evaluation
 export async function evaluateFile(
   file: File,
   options: {
@@ -123,19 +129,16 @@ export async function evaluateFile(
     onUploadProgress?: (progress: number) => void
   } = {}
 ) {
-  // Step 1: Get presigned URL
-  const { uploadUrl, fileKey } = await getUploadUrl(file.name, file.type)
-  
-  // Step 2: Upload file to S3
-  await uploadFileToS3(uploadUrl, file, options.onUploadProgress)
-  
-  // Step 3: Create evaluation (calls Gemini)
-  const evaluation = await createEvaluation({
-    fileKey,
-    fileName: file.name,
-    evaluationType: options.evaluationType,
-    prompt: options.prompt,
-  })
-  
-  return evaluation
+  // Submit to EC2 pipeline
+  const { job_id } = await submitEvaluation(
+    file,
+    'upsc-mains-gs2',
+    options.onUploadProgress
+  )
+  return { job_id }
+}
+
+export async function getEvaluations() {
+  // TODO: implement history from backend
+  return []
 }
