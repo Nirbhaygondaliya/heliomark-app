@@ -59,9 +59,7 @@ export default function HistoryPage() {
       const dates = evals.map((e: Evaluation) => new Date(e.createdAt).toDateString())
       const uniqueDates = dates.filter((d: string, i: number) => dates.indexOf(d) === i)
       setExpandedDates(uniqueDates)
-        new Date(e.createdAt).toDateString()
     } catch (err) {
-      console.error('Failed to load evaluations:', err)
     } finally {
       setLoading(false)
     }
