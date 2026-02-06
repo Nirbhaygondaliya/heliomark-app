@@ -53,7 +53,7 @@ export default function HistoryPage() {
   const loadEvaluations = async () => {
     try {
       const data = await getEvaluations()
-      setEvaluations(data.evaluations || [])
+      setEvaluations(data || [])
       // Expand all dates by default
       const dates = [...new Set(data.evaluations?.map((e: Evaluation) => 
         new Date(e.createdAt).toDateString()
