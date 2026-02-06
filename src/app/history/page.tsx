@@ -53,10 +53,12 @@ export default function HistoryPage() {
   const loadEvaluations = async () => {
     try {
       const data = await getEvaluations()
-      const evals = Array.isArray(data) ? data : (data?.evaluations || [])
+      const evals = Array.isArray(data) ? data : []
       setEvaluations(evals)
       // Expand all dates by default
-      const dates = [...new Set(evals.map((e: Evaluation) =>
+      const dates = evals.map((e: Evaluation) => new Date(e.createdAt).toDateString())
+      const uniqueDates = dates.filter((d: string, i: number) => dates.indexOf(d) === i)
+      setExpandedDates(uniqueDates)
         new Date(e.createdAt).toDateString()
     } catch (err) {
       console.error('Failed to load evaluations:', err)
