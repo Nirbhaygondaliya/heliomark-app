@@ -1,12 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&family=Quicksand:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #fafbfc;
-  --foreground: #102a43;
+  --background: #fdfbf7;
+  --foreground: #2c2824;
 }
 
 * {
@@ -24,7 +24,7 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'Nunito', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -36,68 +36,82 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #faf5eb;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #dbb888;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #b3aba2;
 }
 
 /* Focus styles */
 *:focus-visible {
-  outline: 2px solid #627d98;
+  outline: 2px solid #f19533;
   outline-offset: 2px;
 }
 
-/* Button base styles */
+/* Button & component styles */
 @layer components {
   .btn-primary {
-    @apply bg-helio-700 text-white px-6 py-3 rounded-xl font-medium 
-           hover:bg-helio-800 transition-all duration-200 
-           active:scale-[0.98] shadow-soft;
+    @apply bg-helio-500 text-white px-6 py-3 rounded-2xl font-semibold
+           hover:bg-helio-600 transition-all duration-200
+           active:scale-[0.98] shadow-warm;
   }
-  
+
   .btn-secondary {
-    @apply bg-white text-helio-700 px-6 py-3 rounded-xl font-medium 
-           border border-helio-200 hover:border-helio-300 
-           hover:bg-helio-50 transition-all duration-200;
+    @apply bg-white text-ink-700 px-6 py-3 rounded-2xl font-semibold
+           border-2 border-sand-200 hover:border-helio-200
+           hover:bg-sand-50 transition-all duration-200;
   }
-  
+
   .input-field {
-    @apply w-full px-4 py-3 rounded-xl border border-helio-200 
-           bg-white text-helio-900 placeholder:text-helio-400
-           focus:border-helio-500 focus:ring-2 focus:ring-helio-100 
+    @apply w-full px-4 py-3 rounded-2xl border-2 border-sand-200
+           bg-white text-ink-900 placeholder:text-ink-300
+           focus:border-helio-400 focus:ring-2 focus:ring-helio-100
            transition-all duration-200;
   }
-  
+
   .card {
-    @apply bg-white rounded-2xl shadow-card border border-helio-100/50;
+    @apply bg-white rounded-3xl shadow-card border border-sand-100;
   }
-  
+
   .dropdown-select {
-    @apply w-full px-4 py-3 rounded-xl border border-helio-200 
-           bg-white text-helio-900 cursor-pointer
-           focus:border-helio-500 focus:ring-2 focus:ring-helio-100 
+    @apply w-full px-4 py-3 rounded-2xl border-2 border-sand-200
+           bg-white text-ink-900 cursor-pointer
+           focus:border-helio-400 focus:ring-2 focus:ring-helio-100
            transition-all duration-200 appearance-none
-           bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%23627d98%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.23%207.21a.75.75%200%20011.06.02L10%2011.168l3.71-3.938a.75.75%200%20111.08%201.04l-4.25%204.5a.75.75%200%2001-1.08%200l-4.25-4.5a.75.75%200%2001.02-1.06z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E')]
+           bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%23948a7e%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.23%207.21a.75.75%200%20011.06.02L10%2011.168l3.71-3.938a.75.75%200%20111.08%201.04l-4.25%204.5a.75.75%200%2001-1.08%200l-4.25-4.5a.75.75%200%2001.02-1.06z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E')]
            bg-no-repeat bg-[right_1rem_center];
   }
 }
 
-/* Subtle gradient background */
-.bg-gradient-subtle {
-  background: linear-gradient(135deg, #f0f4f8 0%, #fefdfb 50%, #f0f4f8 100%);
+/* Warm gradient backgrounds */
+.bg-gradient-warm {
+  background: linear-gradient(135deg, #fdfbf7 0%, #fef7ee 30%, #faf5eb 60%, #fdfbf7 100%);
+}
+
+.bg-gradient-sunset {
+  background: linear-gradient(135deg, #fef7ee 0%, #fdedd3 50%, #fad6a5 100%);
+}
+
+.bg-gradient-hero {
+  background: linear-gradient(160deg, #2c2824 0%, #504a42 40%, #773210 100%);
 }
 
 /* Glass effect */
 .glass {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(253, 251, 247, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Decorative dot pattern */
+.dot-pattern {
+  background-image: radial-gradient(circle, #e9d5b3 1px, transparent 1px);
+  background-size: 24px 24px;
 }
