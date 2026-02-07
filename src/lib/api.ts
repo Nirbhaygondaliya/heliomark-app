@@ -3,8 +3,7 @@
 import { getIdToken, refreshTokens, isAuthenticated } from './auth'
 
 // EC2 backend URL for evaluation pipeline
-const EC2_API = process.env.NEXT_PUBLIC_EC2_API_URL || 'http://13.233.111.136:8000'
-
+const EC2_API = process.env.NEXT_PUBLIC_EC2_API_URL || 'https://api.heliomark.ai'
 // Helper for EC2 API requests
 async function ec2Request(
   endpoint: string,
