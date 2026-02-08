@@ -100,7 +100,7 @@ export default function EvaluatePage() {
             { id: 'essay', name: 'Essay', config_folder: 'upsc-mains-essay', available: false },
           ]
         }]
-, {
+      }, {
         id: 'gpsc', name: 'GPSC',
         exams: [{
           id: 'mains', name: 'Mains',
