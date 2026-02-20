@@ -1,5 +1,4 @@
 // AWS Configuration for Heliomark AI
-
 export const awsConfig = {
   // Cognito
   cognito: {
@@ -8,9 +7,9 @@ export const awsConfig = {
     region: 'ap-south-1',
   },
   
-  // API Gateway
+  // API — EC2 backend
   api: {
-    baseUrl: 'https://zupyj99g82.execute-api.ap-south-1.amazonaws.com',
+    baseUrl: 'https://api.heliomark.ai',
   },
   
   // S3 (for reference, uploads go through presigned URLs)

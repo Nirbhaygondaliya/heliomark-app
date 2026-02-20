@@ -31,7 +31,7 @@ async function cognitoRequest(action: string, params: Record<string, any>) {
 }
 
 // Sign up new user
-export async function signUp(email: string, password: string, name?: string) {
+export async function signUp(email: string, password: string, name?: string, phone?: string) {
   const params: any = {
     ClientId: awsConfig.cognito.clientId,
     Username: email,
@@ -43,6 +43,10 @@ export async function signUp(email: string, password: string, name?: string) {
   
   if (name) {
     params.UserAttributes.push({ Name: 'name', Value: name })
+  }
+
+  if (phone) {
+    params.UserAttributes.push({ Name: 'phone_number', Value: phone })
   }
 
   return await cognitoRequest('SignUp', params)
@@ -77,7 +81,6 @@ export async function signIn(email: string, password: string) {
   })
 
   if (response.AuthenticationResult) {
-    // Store tokens
     saveTokens(response.AuthenticationResult)
     return { success: true, user: await getCurrentUser() }
   }
@@ -131,7 +134,6 @@ export function isAuthenticated(): boolean {
   const token = getAccessToken()
   if (!token) return false
   
-  // Check if token is expired
   try {
     const payload = JSON.parse(atob(token.split('.')[1]))
     return payload.exp * 1000 > Date.now()
@@ -151,6 +153,7 @@ export function getCurrentUser() {
       userId: payload.sub,
       email: payload.email,
       name: payload.name || payload.email,
+      phone: payload.phone_number || '',
       emailVerified: payload.email_verified,
     }
   } catch {

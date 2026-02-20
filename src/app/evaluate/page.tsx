@@ -93,7 +93,7 @@ export default function EvaluatePage() {
         exams: [{
           id: 'mains', name: 'Mains',
           papers: [
-            { id: 'gs1', name: 'General Studies Paper I', config_folder: 'upsc-mains-gs1', available: false },
+            { id: 'gs1', name: 'General Studies Paper I', config_folder: 'upsc-mains-gs1', available: true },
             { id: 'gs2', name: 'General Studies Paper II', config_folder: 'upsc-mains-gs2', available: true },
             { id: 'gs3', name: 'General Studies Paper III', config_folder: 'upsc-mains-gs3', available: false },
             { id: 'gs4', name: 'General Studies Paper IV (Ethics)', config_folder: 'upsc-mains-gs4', available: false },
@@ -105,7 +105,12 @@ export default function EvaluatePage() {
         exams: [{
           id: 'mains', name: 'Mains',
           papers: [
+            { id: 'gs1', name: 'General Studies Paper I', config_folder: 'gpsc-mains-gs1', available: true },
+            { id: 'gs2', name: 'General Studies Paper II', config_folder: 'gpsc-mains-gs2', available: true },
+            { id: 'gs3', name: 'General Studies Paper III', config_folder: 'gpsc-mains-gs3', available: true },
+            { id: 'essay', name: 'Essay', config_folder: 'gpsc-mains-essay', available: true },
             { id: 'gujarati', name: 'Gujarati Language', config_folder: 'gpsc-mains-gujarati', available: true },
+            { id: 'english', name: 'English Language', config_folder: 'gpsc-mains-english', available: true },
           ]
         }]
       }])
