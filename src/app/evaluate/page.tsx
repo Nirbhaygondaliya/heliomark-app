@@ -95,7 +95,7 @@ export default function EvaluatePage() {
           papers: [
             { id: 'gs1', name: 'General Studies Paper I', config_folder: 'upsc-mains-gs1', available: true },
             { id: 'gs2', name: 'General Studies Paper II', config_folder: 'upsc-mains-gs2', available: true },
-            { id: 'gs3', name: 'General Studies Paper III', config_folder: 'upsc-mains-gs3', available: false },
+            { id: 'gs3', name: 'General Studies Paper III', config_folder: 'upsc-mains-gs3', available: true },
             { id: 'gs4', name: 'General Studies Paper IV (Ethics)', config_folder: 'upsc-mains-gs4', available: false },
             { id: 'essay', name: 'Essay', config_folder: 'upsc-mains-essay', available: false },
           ]

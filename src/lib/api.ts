@@ -86,6 +86,13 @@ export function getResultPdfUrl(jobId: string): string {
   return `${API_BASE}/api/v1/results/${jobId}/pdf`
 }
 
+// --- Evaluation history ---
+
+// Get all evaluations for the current user
+export async function getEvaluations(): Promise<any> {
+  return await apiRequest('/api/v1/evaluations', { method: 'GET' })
+}
+
 // --- Profile endpoints ---
 
 // Get user profile from DynamoDB
