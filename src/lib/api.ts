@@ -43,12 +43,49 @@ export async function healthCheck() {
   return response.json()
 }
 
-// Get available subjects
+// Get available subjects — hardcoded since configs are managed in S3
 export async function getSubjects(): Promise<any> {
-  const response = await fetch(`${API_BASE}/api/v1/subjects`)
-  return response.json()
+  return {
+    boards: [
+      {
+        id: 'upsc', name: 'UPSC',
+        exams: [{
+          id: 'mains', name: 'Mains',
+          papers: [
+            { id: 'gs1', name: 'General Studies Paper I', config_folder: 'upsc-mains-gs1', available: true },
+            { id: 'gs2', name: 'General Studies Paper II', config_folder: 'upsc-mains-gs2', available: true },
+            { id: 'gs3', name: 'General Studies Paper III', config_folder: 'upsc-mains-gs3', available: true },
+            { id: 'gs4', name: 'General Studies Paper IV (Ethics)', config_folder: 'upsc-mains-gs4', available: false },
+            { id: 'essay', name: 'Essay', config_folder: 'upsc-mains-essay', available: false },
+          ]
+        }]
+      },
+      {
+        id: 'gpsc', name: 'GPSC',
+        exams: [{
+          id: 'mains', name: 'Mains',
+          papers: [
+            { id: 'gs1', name: 'General Studies Paper I', config_folder: 'gpsc-mains-gs1', available: true },
+            { id: 'gs2', name: 'General Studies Paper II', config_folder: 'gpsc-mains-gs2', available: true },
+            { id: 'gs3', name: 'General Studies Paper III', config_folder: 'gpsc-mains-gs3', available: true },
+            { id: 'essay', name: 'Essay', config_folder: 'gpsc-mains-essay', available: true },
+            { id: 'gujarati', name: 'Gujarati Language', config_folder: 'gpsc-mains-gujarati', available: true },
+            { id: 'english', name: 'English Language', config_folder: 'gpsc-mains-english', available: true },
+          ]
+        }]
+      },
+      {
+        id: 'ca', name: 'CA Foundation',
+        exams: [{
+          id: 'foundation', name: 'Foundation',
+          papers: [
+            { id: 'accounting', name: 'Paper 1 - Accounting', config_folder: 'ca-foundation-accounting', available: true },
+          ]
+        }]
+      }
+    ]
+  }
 }
-
 // Submit PDF for evaluation
 export async function submitEvaluation(
   file: File, 
