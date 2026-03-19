@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  ArrowLeft,
   User,
   Mail,
   Shield,
@@ -13,13 +12,20 @@ import {
   Loader2,
   Eye,
   EyeOff,
-  CheckCircle
+  CheckCircle,
+  Building,
+  Phone,
+  MapPin,
+  BookOpen
 } from 'lucide-react'
 import { getCurrentUser, signOut, changePassword, isAuthenticated } from '@/lib/auth'
+import { getProfile } from '@/lib/api'
+import AppShell from '@/components/AppShell'
 
 export default function ProfilePage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
   // Password change state
@@ -44,13 +50,13 @@ export default function ProfilePage() {
 
     const userData = getCurrentUser()
     setUser(userData)
-    setLoading(false)
-  }, [router])
 
-  const handleLogout = () => {
-    signOut()
-    router.push('/login')
-  }
+    // Fetch institute profile from DynamoDB
+    getProfile()
+      .then(data => setProfile(data))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [router])
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -109,31 +115,15 @@ export default function ProfilePage() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-warm">
-        <Loader2 className="w-8 h-8 animate-spin text-helio-500" />
-      </div>
+      <AppShell>
+        <div className="pt-12 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-helio-500" />
+        </div>
+      </AppShell>
     )
   }
-
   return (
-    <div className="min-h-screen bg-gradient-warm">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 h-16 glass border-b border-sand-200/60 z-40">
-        <div className="h-full max-w-7xl mx-auto px-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push('/evaluate')}
-              className="p-2 hover:bg-sand-100 rounded-xl transition-colors"
-            >
-              <ArrowLeft size={20} className="text-ink-400" />
-            </button>
-            <h1 className="text-lg font-display font-semibold text-ink-900">
-              Profile
-            </h1>
-          </div>
-        </div>
-      </header>
-
+    <AppShell>
       {/* Success Toast */}
       {passwordSuccess && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-slide-up">
@@ -143,9 +133,7 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-
-      {/* Main Content */}
-      <main className="pt-24 pb-8 px-4 max-w-2xl mx-auto">
+      <div className="pt-8 pb-8 px-4 max-w-2xl mx-auto">
 
         {/* Profile Header Card */}
         <div className="card p-6 mb-6">
@@ -166,7 +154,52 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-
+        {/* Institute Details */}
+        <div className="card p-6 mb-6">
+          <h3 className="font-display font-semibold text-ink-900 mb-4">Institute Details</h3>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-helio-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Building size={18} className="text-helio-500" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm text-ink-400">Institute Name</div>
+                <div className="text-ink-900">{profile?.institution || '—'}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-helio-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Phone size={18} className="text-helio-500" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm text-ink-400">Phone</div>
+                <div className="text-ink-900">{profile?.phone || '—'}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-helio-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                <MapPin size={18} className="text-helio-500" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm text-ink-400">Location</div>
+                <div className="text-ink-900">
+                  {profile?.city && profile?.state
+                    ? `${profile.city}, ${profile.state}`
+                    : profile?.state || '—'}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-helio-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                <BookOpen size={18} className="text-helio-500" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm text-ink-400">Target Exams</div>
+                <div className="text-ink-900">{profile?.targetExams || '—'}</div>
+              </div>
+            </div>
+          </div>
+        </div>
         {/* Account Information */}
         <div className="card p-6 mb-6">
           <h3 className="font-display font-semibold text-ink-900 mb-4">
@@ -351,7 +384,7 @@ export default function ProfilePage() {
             <span className="font-semibold">Sign Out</span>
           </button>
         </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   )
 }
