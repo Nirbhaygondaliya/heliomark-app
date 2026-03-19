@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { isAuthenticated, getCurrentUser, signOut } from '@/lib/auth'
 import { submitEvaluation, getJobStatus, getResultPdfUrl, getSubjects } from '@/lib/api'
+import AppShell from '@/components/AppShell'
 
 type PageStatus = 'idle' | 'uploading' | 'processing' | 'completed' | 'failed'
 
@@ -250,37 +251,8 @@ export default function EvaluatePage() {
   const evalPercent = totalQuestions > 0 ? Math.round((questionsEvaluated / totalQuestions) * 100) : 0
 
   return (
-    <div className="min-h-screen bg-gradient-warm">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 h-16 glass border-b border-sand-200/60 z-40">
-        <div className="h-full max-w-7xl mx-auto px-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-helio-500 flex items-center justify-center shadow-warm">
-              <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16 4L4 10V22L16 28L28 22V10L16 4Z" fill="white" fillOpacity="0.9"/>
-                <path d="M16 4L28 10L16 16L4 10L16 4Z" fill="white"/>
-                <path d="M16 16V28L4 22V10L16 16Z" fill="white" fillOpacity="0.7"/>
-                <path d="M16 16V28L28 22V10L16 16Z" fill="white" fillOpacity="0.5"/>
-                <circle cx="16" cy="13" r="3" fill="#F19533"/>
-              </svg>
-            </div>
-            <span className="font-display font-bold text-ink-900">Heliomark</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <button onClick={() => router.push('/history')} className="p-2.5 hover:bg-sand-100 rounded-xl transition-colors" title="History">
-              <History size={20} className="text-ink-400" />
-            </button>
-            <button onClick={() => router.push('/profile')} className="p-2.5 hover:bg-sand-100 rounded-xl transition-colors" title="Profile">
-              <User size={20} className="text-ink-400" />
-            </button>
-            <button onClick={handleLogout} className="p-2.5 hover:bg-sand-100 rounded-xl transition-colors" title="Sign out">
-              <LogOut size={20} className="text-ink-400" />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="pt-24 pb-8 px-4 max-w-2xl mx-auto">
+    <AppShell>
+      <div className="pt-8 pb-8 px-4 max-w-2xl mx-auto"></div>
         <div className="text-center mb-8">
           <h1 className="text-3xl font-display font-bold text-ink-900 mb-2">Evaluate Answer Sheet</h1>
           <p className="text-ink-400">Select your exam, upload the scanned PDF, and get AI-powered feedback</p>
@@ -584,7 +556,6 @@ export default function EvaluatePage() {
             </button>
           </div>
         )}
-      </main>
-    </div>
+    </AppShell>
   )
 }
