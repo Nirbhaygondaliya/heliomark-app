@@ -138,12 +138,16 @@ export async function getProfile(): Promise<any> {
 }
 
 // Save/update user profile
+// Save/update user profile
 export async function updateProfile(data: {
   name?: string
   phone?: string
   institution?: string
   location?: string
   role?: string
+  state?: string
+  city?: string
+  targetExams?: string
 }): Promise<any> {
   return await apiRequest('/api/v1/profile', {
     method: 'PUT',
