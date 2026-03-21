@@ -373,17 +373,6 @@ export default function ProfilePage() {
             </form>
           )}
         </div>
-
-        {/* Logout */}
-        <div className="card p-6">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl border-2 border-red-200 text-red-600 hover:bg-red-50 transition-colors"
-          >
-            <LogOut size={20} />
-            <span className="font-semibold">Sign Out</span>
-          </button>
-        </div>
       </div>
     </AppShell>
   )
