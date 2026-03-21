@@ -1,18 +1,22 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { getStats } from '@/lib/api'
 
 export default function Footer() {
-  // Placeholder values until GET /api/v1/stats is built
   const [stats, setStats] = useState({
-    totalSheets: 1247,
-    totalInstitutes: 23
+    totalSheets: 0,
+    totalInstitutes: 0
   })
 
-  // TODO: Replace with real API call when backend endpoint exists
-  // useEffect(() => {
-  //   fetch('/api/v1/stats').then(r => r.json()).then(setStats)
-  // }, [])
+  useEffect(() => {
+    getStats()
+      .then(data => setStats({
+        totalSheets: data.totalSheets || 0,
+        totalInstitutes: data.totalInstitutes || 0
+      }))
+      .catch(() => {})
+  }, [])
 
   return (
     <footer className="border-t border-sand-200 bg-sand-50">

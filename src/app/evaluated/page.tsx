@@ -8,27 +8,18 @@ import {
   CheckSquare,
   Square,
   Loader2,
-  FileSpreadsheet,
-  AlertCircle
+  FileSpreadsheet
 } from 'lucide-react'
 import AppShell from '@/components/AppShell'
+import { getJobs, updateJob, getDownloadUrl } from '@/lib/api'
 
 interface EvaluatedSheet {
-  id: string
+  jobId: string
   fileName: string
   studentName: string
   phoneNo: string
-  downloadUrl: string
   completedAt: string
 }
-
-// TODO: Replace with real API call — GET /api/v1/evaluations
-const mockSheets: EvaluatedSheet[] = [
-  { id: '1', fileName: 'student_answer_1.pdf', studentName: '', phoneNo: '', downloadUrl: '#', completedAt: '2026-03-19T10:45:00Z' },
-  { id: '2', fileName: 'gpsc_gs1_ravi.pdf', studentName: '', phoneNo: '', downloadUrl: '#', completedAt: '2026-03-18T14:20:00Z' },
-  { id: '3', fileName: 'upsc_mains_priya.pdf', studentName: '', phoneNo: '', downloadUrl: '#', completedAt: '2026-03-17T09:30:00Z' },
-  { id: '4', fileName: 'ca_paper1_amit.pdf', studentName: '', phoneNo: '', downloadUrl: '#', completedAt: '2026-03-16T16:00:00Z' },
-]
 
 export default function EvaluatedListPage() {
   const [sheets, setSheets] = useState<EvaluatedSheet[]>([])
@@ -36,12 +27,28 @@ export default function EvaluatedListPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    // TODO: Replace with real API call
-    setTimeout(() => {
-      setSheets(mockSheets)
-      setLoading(false)
-    }, 500)
+    fetchEvaluated()
   }, [])
+
+  const fetchEvaluated = async () => {
+    try {
+      const data = await getJobs()
+      const done = (data.jobs || [])
+        .filter((j: any) => j.status === 'done')
+        .map((j: any) => ({
+          jobId: j.jobId,
+          fileName: j.fileName,
+          studentName: j.studentName || '',
+          phoneNo: j.phoneNo || '',
+          completedAt: j.completedAt || '',
+        }))
+      setSheets(done)
+    } catch (err) {
+      console.error('Failed to fetch evaluations:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const toggleSelect = (id: string) => {
     setSelected(prev => {
@@ -56,23 +63,33 @@ export default function EvaluatedListPage() {
     if (selected.size === sheets.length) {
       setSelected(new Set())
     } else {
-      setSelected(new Set(sheets.map(s => s.id)))
+      setSelected(new Set(sheets.map(s => s.jobId)))
     }
   }
 
-  const updateField = (id: string, field: 'studentName' | 'phoneNo', value: string) => {
+  const updateField = async (jobId: string, field: 'studentName' | 'phoneNo', value: string) => {
     setSheets(prev => prev.map(s =>
-      s.id === id ? { ...s, [field]: value } : s
+      s.jobId === jobId ? { ...s, [field]: value } : s
     ))
+    // Save to backend (debounce in production, direct call for now)
+    try {
+      await updateJob(jobId, { [field]: value })
+    } catch (err) {
+      console.error('Failed to update job:', err)
+    }
   }
 
-  const handleDownload = (url: string) => {
-    // TODO: Replace with real download from S3
-    window.open(url, '_blank')
+  const handleDownload = async (jobId: string) => {
+    try {
+      const data = await getDownloadUrl(jobId)
+      window.open(data.download_url, '_blank')
+    } catch (err) {
+      console.error('Download failed:', err)
+      alert('Download failed — please try again')
+    }
   }
 
   const handleExcelExport = () => {
-    // TODO: Implement Excel export
     alert('Excel export coming soon — will download student details as .xlsx')
   }
 
@@ -135,10 +152,10 @@ export default function EvaluatedListPage() {
               </thead>
               <tbody>
                 {sheets.map((sheet, index) => (
-                  <tr key={sheet.id} className="border-b border-sand-100 last:border-0 hover:bg-sand-50/50 transition-colors">
+                  <tr key={sheet.jobId} className="border-b border-sand-100 last:border-0 hover:bg-sand-50/50 transition-colors">
                     <td className="py-3 px-4">
-                      <button onClick={() => toggleSelect(sheet.id)} className="text-ink-400 hover:text-ink-600">
-                        {selected.has(sheet.id)
+                      <button onClick={() => toggleSelect(sheet.jobId)} className="text-ink-400 hover:text-ink-600">
+                        {selected.has(sheet.jobId)
                           ? <CheckSquare size={18} className="text-helio-500" />
                           : <Square size={18} />
                         }
@@ -155,7 +172,7 @@ export default function EvaluatedListPage() {
                       <input
                         type="text"
                         value={sheet.studentName}
-                        onChange={e => updateField(sheet.id, 'studentName', e.target.value)}
+                        onChange={e => updateField(sheet.jobId, 'studentName', e.target.value)}
                         placeholder="Enter name"
                         className="w-full px-3 py-1.5 text-sm border border-sand-200 rounded-lg bg-white focus:border-helio-400 focus:ring-1 focus:ring-helio-100 transition-all placeholder:text-ink-200"
                       />
@@ -164,24 +181,20 @@ export default function EvaluatedListPage() {
                       <input
                         type="tel"
                         value={sheet.phoneNo}
-                        onChange={e => updateField(sheet.id, 'phoneNo', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        onChange={e => updateField(sheet.jobId, 'phoneNo', e.target.value.replace(/\D/g, '').slice(0, 10))}
                         placeholder="Enter phone"
                         className="w-full px-3 py-1.5 text-sm border border-sand-200 rounded-lg bg-white focus:border-helio-400 focus:ring-1 focus:ring-helio-100 transition-all placeholder:text-ink-200"
                         maxLength={10}
                       />
                     </td>
                     <td className="py-3 px-3 text-center">
-                      <button
-                        disabled
-                        title="WhatsApp sending coming soon"
-                        className="p-2 rounded-lg text-ink-200 cursor-not-allowed"
-                      >
+                      <button disabled title="WhatsApp sending coming soon" className="p-2 rounded-lg text-ink-200 cursor-not-allowed">
                         <Send size={16} />
                       </button>
                     </td>
                     <td className="py-3 px-3 text-center">
                       <button
-                        onClick={() => handleDownload(sheet.downloadUrl)}
+                        onClick={() => handleDownload(sheet.jobId)}
                         className="p-2 rounded-lg text-helio-500 hover:bg-helio-50 transition-colors"
                         title="Download evaluated PDF"
                       >

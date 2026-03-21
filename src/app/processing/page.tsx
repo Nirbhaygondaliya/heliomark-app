@@ -10,22 +10,15 @@ import {
   RefreshCw
 } from 'lucide-react'
 import AppShell from '@/components/AppShell'
+import { getJobs } from '@/lib/api'
 
 interface Job {
-  id: string
+  jobId: string
   fileName: string
-  status: 'queued' | 'processing' | 'done' | 'error'
+  status: string
   error?: string
   createdAt: string
 }
-
-// TODO: Replace with real API call — GET /api/v1/jobs
-const mockJobs: Job[] = [
-  { id: '1', fileName: 'student_answer_1.pdf', status: 'done', createdAt: '2026-03-19T10:30:00Z' },
-  { id: '2', fileName: 'student_answer_2.pdf', status: 'processing', createdAt: '2026-03-19T11:00:00Z' },
-  { id: '3', fileName: 'student_answer_3.pdf', status: 'queued', createdAt: '2026-03-19T11:05:00Z' },
-  { id: '4', fileName: 'gpsc_paper_4.pdf', status: 'error', error: 'PDF too blurry to read', createdAt: '2026-03-19T09:15:00Z' },
-]
 
 export default function ProcessingPage() {
   const [jobs, setJobs] = useState<Job[]>([])
@@ -33,13 +26,15 @@ export default function ProcessingPage() {
   const [refreshing, setRefreshing] = useState(false)
 
   const fetchJobs = async () => {
-    // TODO: Replace with real API call
-    // const data = await fetch('/api/v1/jobs').then(r => r.json())
-    // setJobs(data.jobs)
-    await new Promise(resolve => setTimeout(resolve, 500))
-    setJobs(mockJobs)
-    setLoading(false)
-    setRefreshing(false)
+    try {
+      const data = await getJobs()
+      setJobs(data.jobs || [])
+    } catch (err) {
+      console.error('Failed to fetch jobs:', err)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
   }
 
   useEffect(() => {
@@ -51,7 +46,7 @@ export default function ProcessingPage() {
     fetchJobs()
   }
 
-  const statusConfig = {
+  const statusConfig: Record<string, any> = {
     queued: { label: 'Queued', icon: Clock, color: 'text-ink-400', bg: 'bg-sand-100' },
     processing: { label: 'Processing', icon: Loader2, color: 'text-helio-500', bg: 'bg-helio-50' },
     done: { label: 'Done', icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50' },
@@ -108,10 +103,10 @@ export default function ProcessingPage() {
               </thead>
               <tbody>
                 {jobs.map((job, index) => {
-                  const config = statusConfig[job.status]
+                  const config = statusConfig[job.status] || statusConfig.queued
                   const StatusIcon = config.icon
                   return (
-                    <tr key={job.id} className="border-b border-sand-100 last:border-0 hover:bg-sand-50/50 transition-colors">
+                    <tr key={job.jobId} className="border-b border-sand-100 last:border-0 hover:bg-sand-50/50 transition-colors">
                       <td className="py-3 px-4 text-sm text-ink-400">{index + 1}</td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">

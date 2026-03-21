@@ -89,7 +89,7 @@ export default function EvaluatePage() {
     setError('')
     try {
       for (const file of files) {
-        await submitEvaluation(file, '')
+        await submitEvaluation(file)
       }
       setSubmittedCount(files.length)
       setSubmitted(true)

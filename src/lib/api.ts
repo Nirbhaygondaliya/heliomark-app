@@ -4,9 +4,9 @@ import { getIdToken, refreshTokens, isAuthenticated } from './auth'
 
 const API_BASE = awsConfig.api.baseUrl
 
-// Helper for API requests with authentication
+// Helper for authenticated API requests
 async function apiRequest(
-  endpoint: string, 
+  endpoint: string,
   options: RequestInit = {}
 ): Promise<any> {
   if (!isAuthenticated()) {
@@ -18,7 +18,7 @@ async function apiRequest(
   }
 
   const token = getIdToken()
-  
+
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     headers: {
@@ -43,62 +43,15 @@ export async function healthCheck() {
   return response.json()
 }
 
-// Get available subjects — hardcoded since configs are managed in S3
-export async function getSubjects(): Promise<any> {
-  return {
-    boards: [
-      {
-        id: 'upsc', name: 'UPSC',
-        exams: [{
-          id: 'mains', name: 'Mains',
-          papers: [
-            { id: 'gs1', name: 'General Studies Paper I', config_folder: 'upsc-mains-gs1', available: true },
-            { id: 'gs2', name: 'General Studies Paper II', config_folder: 'upsc-mains-gs2', available: true },
-            { id: 'gs3', name: 'General Studies Paper III', config_folder: 'upsc-mains-gs3', available: true },
-            { id: 'gs4', name: 'General Studies Paper IV (Ethics)', config_folder: 'upsc-mains-gs4', available: false },
-            { id: 'essay', name: 'Essay', config_folder: 'upsc-mains-essay', available: false },
-          ]
-        }]
-      },
-      {
-        id: 'gpsc', name: 'GPSC',
-        exams: [{
-          id: 'mains', name: 'Mains',
-          papers: [
-            { id: 'gs1', name: 'General Studies Paper I', config_folder: 'gpsc-mains-gs1', available: true },
-            { id: 'gs2', name: 'General Studies Paper II', config_folder: 'gpsc-mains-gs2', available: true },
-            { id: 'gs3', name: 'General Studies Paper III', config_folder: 'gpsc-mains-gs3', available: true },
-            { id: 'essay', name: 'Essay', config_folder: 'gpsc-mains-essay', available: true },
-            { id: 'gujarati', name: 'Gujarati Language', config_folder: 'gpsc-mains-gujarati', available: true },
-            { id: 'english', name: 'English Language', config_folder: 'gpsc-mains-english', available: true },
-          ]
-        }]
-      },
-      {
-        id: 'ca', name: 'CA Foundation',
-        exams: [{
-          id: 'foundation', name: 'Foundation',
-          papers: [
-            { id: 'accounting', name: 'Paper 1 - Accounting', config_folder: 'ca-foundation-accounting', available: true },
-          ]
-        }]
-      }
-    ]
-  }
-}
-// Submit PDF for evaluation
-export async function submitEvaluation(
-  file: File, 
-  subjectId: string, 
-  onProgress?: (progress: number) => void
-): Promise<any> {
-  const formData = new FormData()
-  formData.append('file', file)
-  formData.append('subject_id', subjectId)
+// --- Evaluation ---
 
-  // attach institution from localStorage (saved during sign-up/sign-in)
+// Submit single PDF for evaluation
+export async function submitEvaluation(file: File): Promise<any> {
+  const formData = new FormData()
+  formData.append('pdf', file)
+
   const inst = localStorage.getItem('heliomark_institution')
-  if (inst) formData.append('institution', inst)
+  if (inst) formData.append('institute_name', inst)
 
   const token = getIdToken()
   const response = await fetch(`${API_BASE}/api/v1/evaluate`, {
@@ -112,32 +65,44 @@ export async function submitEvaluation(
   return data
 }
 
-// Check job status
-export async function getJobStatus(jobId: string): Promise<any> {
-  const response = await fetch(`${API_BASE}/api/v1/jobs/${jobId}`)
+// --- Jobs ---
+
+// List all jobs for current user
+export async function getJobs(): Promise<any> {
+  return await apiRequest('/api/v1/jobs', { method: 'GET' })
+}
+
+// Update student name or phone on a job
+export async function updateJob(jobId: string, data: {
+  studentName?: string
+  phoneNo?: string
+}): Promise<any> {
+  return await apiRequest(`/api/v1/jobs/${jobId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  })
+}
+
+// Get fresh download URL for evaluated PDF
+export async function getDownloadUrl(jobId: string): Promise<any> {
+  return await apiRequest(`/api/v1/jobs/${jobId}/download`, { method: 'GET' })
+}
+
+// --- Stats ---
+
+// Get total sheets evaluated + total institutes
+export async function getStats(): Promise<any> {
+  const response = await fetch(`${API_BASE}/api/v1/stats`)
   return response.json()
 }
 
-// Get result PDF download URL
-export function getResultPdfUrl(jobId: string): string {
-  return `${API_BASE}/api/v1/results/${jobId}/pdf`
-}
-
-// --- Evaluation history ---
-
-// Get all evaluations for the current user
-export async function getEvaluations(): Promise<any> {
-  return await apiRequest('/api/v1/evaluations', { method: 'GET' })
-}
-
-// --- Profile endpoints ---
+// --- Profile ---
 
 // Get user profile from DynamoDB
 export async function getProfile(): Promise<any> {
   return await apiRequest('/api/v1/profile', { method: 'GET' })
 }
 
-// Save/update user profile
 // Save/update user profile
 export async function updateProfile(data: {
   name?: string
