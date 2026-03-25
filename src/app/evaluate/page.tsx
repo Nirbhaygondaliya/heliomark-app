@@ -266,7 +266,9 @@ export default function EvaluatePage() {
             </div>
           </div>
         </div>
-
+        <p className="text-center text-xs text-ink-300 max-w-lg mx-auto mb-4">
+          Heliomark is using AI — While highly accurate, occasional errors may occur.
+        </p>
         <div className="text-center">
           <button onClick={handleSubmit} disabled={!hasFiles || isSubmitting} className="btn-primary px-12 py-4 text-lg flex items-center justify-center gap-3 mx-auto disabled:opacity-50 disabled:cursor-not-allowed">
             {isSubmitting ? (
