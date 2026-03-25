@@ -207,6 +207,9 @@ export default function EvaluatedListPage() {
             </table>
           </div>
         )}
+        <p className="text-center text-xs text-ink-300 mt-6">
+          AI-generated evaluations may contain occasional errors.
+        </p>
       </div>
     </AppShell>
   )
