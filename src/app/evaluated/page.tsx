@@ -106,8 +106,7 @@ export default function EvaluatedListPage() {
   return (
     <AppShell>
       <div className="pt-8 pb-8 px-4 max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">          <div>
             <h1 className="text-2xl font-display font-bold text-ink-900">List of Evaluated Answer Sheets</h1>
             <p className="text-ink-400 text-sm mt-1">{sheets.length} evaluated</p>
           </div>

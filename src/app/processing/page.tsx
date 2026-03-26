@@ -91,8 +91,8 @@ export default function ProcessingPage() {
             </a>
           </div>
         ) : (
-          <div className="card overflow-hidden">
-            <table className="w-full">
+          <div className="card overflow-x-auto">
+            <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b border-sand-200 bg-sand-50">
                   <th className="text-left py-3 px-4 text-xs font-semibold text-ink-400 uppercase tracking-wider">No</th>
