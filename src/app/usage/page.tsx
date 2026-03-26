@@ -37,7 +37,7 @@ export default function UsagePage() {
         </div>
 
         <h2 className="font-display font-bold text-ink-900 mb-4">Upgrade Plan</h2>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {plans.map((plan, index) => (
             <div key={plan.name} className={`card p-6 text-center ${index === 1 ? 'ring-2 ring-helio-400' : ''}`}>
               {index === 1 && (
